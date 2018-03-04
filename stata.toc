@@ -1,0 +1,3 @@
+v 1.0
+
+p tabstatxls Comando per esportare l'output del comando tabstat in LaTex.
