@@ -1,5 +1,5 @@
 v 3
-d tabstatxls. Package to export output of tabstat command in Microsogt Excel.
+d tabstatxls. Package to export output of tabstat command in Microsoft Excel.
 d Program by {bf:Nicola Tommasi} (nicola.tommasi@gmail.com)
 d
 d Distribution-Date: 20180303
