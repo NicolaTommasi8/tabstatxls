@@ -1,40 +1,37 @@
-
 capture program drop tabstatxls
-program define tabstatxls
+program define tabstatxls, rclass
 
-*! version 0.0.8  TomaHawk  27nov2017
+*! version 0.0.9  added option nodispstat
+*!                added rclass
+*!                some minor bugfixies
+
+*! version 0.0.8  Public release  27nov2017
 version 14
 **TODO LIST
-syntax varlist [if] [in] [, by(name) Statistics(str asis) Columns(string) format(str asis) NOTotal Missing  ///
+
+syntax varlist [if] [in] [, by(name) Statistics(str asis) Columns(string) Format(str asis) NOTotal Missing  ///
                             xlsfile(str) replace sheet(str) sheetmodify sheetreplace cell(str) caption(str asis) note(str asis) ///
                             wintr1(real 40) wintr2(real 30) intc1(str) intc2(str) intc_size(real 30) resc_size(real 16) rows_size(real 15) ///
-                            fontname(str asis) fontsize(real 11) pattern_intc(str asis) ///
+                            fontname(str asis) fontsize(real 11) bcolor_intc(str asis) pattern_intc(str asis) ///
                             vardisp(string) bold ///
                             dfs1(string) dfs2(string) dfs3(string) dfs4(string) dfs5(string) dfs6(string) dfs7(string) dfs8(string) dfs9(string) dfs10(string)    ///
                             s1(string) s2(string) s3(string) s4(string) s5(string) s6(string) s7(string) s8(string) s9(string) s10(string)    ///
-                                             /* options for excel */ ]
-**macro list
+                            nodispstat debug  /* options for excel */ ]
+
+local nodispstat = "`dispstat'"
 
 mata: mata clear
 
 if "`sheet'"=="" local sheet = "Foglio 1"
-
-
 if "`columns'" == "" local columns = "variables"
+if "`format'" == "" local format = "number_sep_d2"
+if "`pattern_intc'" == "" local pattern_intc = "solid"
+if "`intc1'" == "" & "`by'" !="" local intc1 : variable label `by'
 
 local statistics = subinword("`statistics'","q","p25 p50 p75",1)
 if "`statistics'"=="" local statistics = "mean"
 local nstat = wordcount("`statistics'")
-
-/***   ???
-if "`dfs1'" != "" {
-  mata: vec_df = J(0,1,"")
-  forvalues i=1(1)`nstat' {
-    mata: vec_df = vec_df \ "`dfs`i''"
-  }
-}
-************/
-
+if `nstat'==1 local dispstat = "nodispstat"
 
 local nvar =  wordcount("`varlist'")
 
@@ -54,7 +51,8 @@ local n_catvar=0 /** serve per non avere problemi nell'if di mata if ("`columns'
 if "`by'" != "" {
   local byvar = "`by'"
   local by = "by(`by')"
-  qui fre `byvar'
+  if "`missing'" == "" qui fre `byvar' `if' `in', nomissing
+  else qui fre `byvar' `if' `in'
   local n_catvar = r(r)
 }
 if "`vardisp'" == "" local vardisp = "varlabel"
@@ -129,7 +127,7 @@ if "`columns'" == "statistics" {
       else if "`i'"=="p95" local ii="95° percentile"
       else if "`i'"=="p99" local ii="99° percentile"
       else if "`i'"=="iqr" local ii="Range interquartile"
-    mata: vec_colsint = vec_colsint , "`ii'"
+      mata: vec_colsint = vec_colsint , "`ii'"
     }
 
   }
@@ -138,7 +136,7 @@ if "`columns'" == "statistics" {
     foreach i in `cols_int' {
       local ii = "`s`cnt''"
       local cnt `++cnt'
-    mata: vec_colsint = vec_colsint , "`ii'"
+      mata: vec_colsint = vec_colsint , "`ii'"
     }
   }
 
@@ -184,7 +182,7 @@ else { /* variables */
       else if "`i'"=="p95" local ii="95° percentile"
       else if "`i'"=="p99" local ii="99° percentile"
       else if "`i'"=="iqr" local ii="Range interquartile"
-    mata: vec_rowsint = vec_rowsint \ "`ii'"
+      mata: vec_rowsint = vec_rowsint \ "`ii'"
     }
   }
 
@@ -193,7 +191,7 @@ else { /* variables */
     foreach i in `rows_int' {
       local ii = "`s`cnt''"
       local cnt `++cnt'
-    mata: vec_rowsint = vec_rowsint \ "`ii'"
+      mata: vec_rowsint = vec_rowsint \ "`ii'"
     }
   }
 }
@@ -232,6 +230,7 @@ if ("`caption'" == "") Y0 = Ysp;
 
 
 if ("`columns'"=="statistics" & "`by'"=="") {
+  flag1 = "columns=statistics & by=null"
   Y1T = Y0 + 1
   X1 = Xsp + 1
   Y1 = Y1T + 1
@@ -258,7 +257,7 @@ if ("`columns'"=="statistics" & "`by'"=="") {
   if ("`bold'"=="bold") b.set_font_bold(Y1T,cols,"on")
   b.set_row_height(Y1T,Y1T, `intc_size')
   b.set_text_wrap(Y1T,cols,"on")
-  if ("`pattern_intc'" != "")  b.set_fill_pattern(Y1T,cols,"solid","`pattern_intc'")
+  if ("`bcolor_intc'" != "")  b.set_fill_pattern(Y1T,cols,"`pattern_intc'","`bcolor_intc'")
 
   // colonna intestazione righe
   rows = (Y1T,Yn)
@@ -277,7 +276,7 @@ if ("`columns'"=="statistics" & "`by'"=="") {
   // formato numerico
   //default è number_sep_d2
   if ("`dfs1'"=="") {
-    b.set_number_format(rows,cols,"number_sep_d2")
+    b.set_number_format(rows,cols,"`format'")
   };
 
   if ("`dfs1'"!="") {
@@ -330,6 +329,7 @@ if ("`columns'"=="statistics" & "`by'"=="") {
 
 
 if ("`columns'"=="variables" & "`by'"=="") {
+  flag2 = "columns=variables & by=null"
   Y1T = Y0 + 1
   X1 = Xsp + 1
   Y1 = Y1T + 1
@@ -353,7 +353,7 @@ if ("`columns'"=="variables" & "`by'"=="") {
   if ("`bold'"=="bold") b.set_font_bold(Y1T,cols,"on")
   b.set_row_height(Y1T,Y1T, `intc_size')
   b.set_text_wrap(Y1T,cols,"on")
-  if ("`pattern_intc'" != "")  b.set_fill_pattern(Y1T,cols,"solid","`pattern_intc'")
+  if ("`bcolor_intc'" != "")  b.set_fill_pattern(Y1T,cols,"`pattern_intc'","`bcolor_intc'")
 
   // colonna intestazione righe
   rows = (Y1T,Yn)
@@ -372,7 +372,7 @@ if ("`columns'"=="variables" & "`by'"=="") {
   // formato numerico
   //default è number_sep_d2
   if ("`dfs1'"=="") {
-    b.set_number_format(rows,cols,"number_sep_d2")
+    b.set_number_format(rows,cols,"`format'")
   };
 
   if ("`dfs1'"!="") {
@@ -425,19 +425,23 @@ if ("`columns'"=="variables" & "`by'"=="") {
 
 
 
-
 if ("`columns'" == "variables" & "`by'" != "") {
-  Xint = Xsp + 1
+  flag3 = "columns=variables & by=`by'"
+  if ("`nodispstat'"=="") Xint = Xsp + 1;
+  else Xint = Xsp;
   X1 = Xint + 1
-  Xn = X1 + cols(StatTotal) - 1
-
+  if (cols(StatTotal) > 0) Xn = X1 + cols(StatTotal) - 1
+  else Xn = X1 + `nvar' - 1
   Y1T = Ysp + 1
   Y1 = Y1T + 1
-  Yn = Y1T + rows(StatTotal)*`n_catvar'
+  //se c'è nototal -> rows(StatTotal)=0 ->
+  if (rows(StatTotal) > 0) Yn = Y1T + rows(StatTotal)*`n_catvar'
+  else Yn = Y1T + `n_catvar'
+
   if ("`nototal'"=="") Yn = Yn + rows(StatTotal);
 
   if ("`intc1'" !="") b.put_string(Y1T,Xsp,"`intc1'")
-  if ("`intc2'" !="") b.put_string(Y1T,Xint,"`intc2'")
+  if ("`intc2'" !="" & "`nodispstat'" =="") b.put_string(Y1T,Xint,"`intc2'")
 
   b.put_string(Y1T,X1,vec_colsint)
 
@@ -446,12 +450,13 @@ if ("`columns'" == "variables" & "`by'" != "") {
   je = js + `nstat' -1
   for (j=1; j<=rows(desc_catvar); j++) {
     b.put_string(rowi,Xsp,desc_catvar[j,.])
-    b.put_string(rowi,Xint,vec_rowsint)
+    if ("`nstat'"=="") b.put_string(rowi,Xint,vec_rowsint);
     b.put_number(rowi,X1,STAT[js..je,.])
     rowi=rowi + `nstat'
     js = js + `nstat'
     je = je + `nstat'
   }
+
 
   if ("`nototal'"=="") {
     b.put_string(rowi,Xsp,"Totale")
@@ -465,6 +470,8 @@ if ("`columns'" == "variables" & "`by'" != "") {
   cfs = (Xsp,Xn)
   if (`font_flag' == 1) b.set_font(rfs, cfs, "`fontname'", `fontsize')
 
+
+
   //riga intestazione
   cols = (Xsp,Xn)
   b.set_horizontal_align(Y1T,cols,"center")
@@ -472,7 +479,8 @@ if ("`columns'" == "variables" & "`by'" != "") {
   if ("`bold'"=="bold") b.set_font_bold(Y1T,cols,"on")
   b.set_row_height(Y1T,Y1T, `intc_size')
   b.set_text_wrap(Y1T,cols,"on")
-  if ("`pattern_intc'" != "")  b.set_fill_pattern(Y1T,cols,"solid","`pattern_intc'")
+  if ("`bcolor_intc'" != "")  b.set_fill_pattern(Y1T,cols,"`pattern_intc'","`bcolor_intc'")
+
 
   // colonna intestazione righe
   rows = (Y1T,Yn)
@@ -481,13 +489,23 @@ if ("`columns'" == "variables" & "`by'" != "") {
   b.set_row_height(Y1,Yn, `rows_size')
   b.set_text_wrap(rows,Xsp,"on")
 
+
+
+
+
   // colonna delle statistiche
-  b.set_vertical_align(rows,Xint,"center")
-  b.set_column_width(Xint, Xint, `wintr2')
+  if ("`nodispstat'" == "") {
+    b.set_vertical_align(rows,Xint,"center")
+    b.set_column_width(Xint, Xint, `wintr2')
+  }
+
+
+
 
   // larghezza e allineamneto colonne della tabella
   rows = (Y1,Yn)
   cols = (X1,Xn)
+
   b.set_column_width(X1, Xn, `resc_size')
   b.set_vertical_align(rows,cols,"center")
   b.set_horizontal_align(rows,cols,"center")
@@ -496,8 +514,13 @@ if ("`columns'" == "variables" & "`by'" != "") {
   // formato numerico
   //default è number_sep_d2
   if ("`dfs1'"=="") {
-    b.set_number_format(rows,cols,"number_sep_d2")
+    b.set_number_format(rows,cols,"`format'")
   };
+
+
+
+
+
 
   if ("`dfs1'"!="") {
     rowi = Y1
@@ -584,7 +607,7 @@ if ("`columns'" == "variables" & "`by'" != "") {
   rowi = Y1 + `nstat' - 1
   cols = (Xint,Xn)
   for (j=1; j<=`n_catvar'; j++) {
-    b.set_bottom_border(rowi,cols,"dotted","gray")
+    if ("`nodispstat'" == "") b.set_bottom_border(rowi,cols,"dotted","gray")
     rowi=rowi+`nstat'
   }
 
@@ -597,6 +620,7 @@ if ("`columns'" == "variables" & "`by'" != "") {
 
 
 if ("`columns'"=="statistics" & "`by'"!="") {
+  flag4 = "columns=statistics & by=`by'"
   Xint = Xsp + 1
   X1 = Xint + 1
   Xn = X1 + rows(StatTotal) - 1
@@ -651,7 +675,7 @@ if ("`columns'"=="statistics" & "`by'"!="") {
   if ("`bold'"=="bold") b.set_font_bold(Y1T,cols,"on")
   b.set_row_height(Y1T,Y1T, `intc_size')
   b.set_text_wrap(Y1T,cols,"on")
-  if ("`pattern_intc'" != "")  b.set_fill_pattern(Y1T,cols,"solid","`pattern_intc'")
+  if ("`bcolor_intc'" != "")  b.set_fill_pattern(Y1T,cols,"`pattern_intc'","`bcolor_intc'")
 
   // colonna intestazione righe
   rows = (Y1T,Yn)
@@ -661,9 +685,10 @@ if ("`columns'"=="statistics" & "`by'"!="") {
   b.set_text_wrap(rows,Xsp,"on")
 
   // colonna delle variabili
-  b.set_vertical_align(rows,Xint,"center")
-  b.set_column_width(Xint, Xint, `wintr2')
-
+  if ("`nodispstat'" == "") {
+    b.set_vertical_align(rows,Xint,"center")
+    b.set_column_width(Xint, Xint, `wintr2')
+  }
   // larghezza e allineamneto colonne della tabella
   rows = (Y1,Yn)
   cols = (X1,Xn)
@@ -674,7 +699,7 @@ if ("`columns'"=="statistics" & "`by'"!="") {
   // formato numerico
   //default è number_sep_d2
   if ("`dfs1'"=="") {
-    b.set_number_format(rows,cols,"number_sep_d2")
+    b.set_number_format(rows,cols,"`format'")
   };
 
   if ("`dfs1'"!="") {
@@ -722,7 +747,7 @@ if ("`columns'"=="statistics" & "`by'"!="") {
   rowi = Y1 + `nvar' - 1
   cols = (Xint,Xn)
   for (j=1; j<=`n_catvar'; j++) {
-    b.set_bottom_border(rowi,cols,"dotted","gray")
+    if ("`nodispstat'" == "") b.set_bottom_border(rowi,cols,"dotted","gray")
     rowi=rowi+`nvar'
   }
 
@@ -737,11 +762,57 @@ if ("`columns'"=="statistics" & "`by'"!="") {
   b.set_font(Ynote, Xsp , "`fontname'", fontsize_note)
  }
 
+if ("`debug'" != "") {
+  "COORDINATE";
+  "Ysp: "; Ysp
+  "Y1T"; Y1T
+  "Y1"; Y1
+  "Yn"; Yn
 
+"COORDINATE X";
+  "Xsp"; strofreal(Xsp) , numtobase26(Xsp)
+  "Xint"; strofreal(Xint) , numtobase26(Xint)
+  "X1"; strofreal(X1) , numtobase26(X1)
+  "Xn"; strofreal(Xn) , numtobase26(Xn)
+
+  "flag1"; flag1
+  "flag2"; flag2
+  "flag3"; flag3
+  "flag4"; flag4
+
+"desc_catvar"; desc_catvar
+"vec_rowsint"; vec_rowsint
+"vec_colsint"; vec_colsint'
+
+};
 
 b.close_book()
+
+//export return elements
+st_rclear()
+//st_global("r(name)", "tab")              <- see [M-5] st_global()
+//st_matrix("r(table)", X+Y)               <- see [M-5] st_matrix()
+st_numscalar("r(srow)", Ysp)
+st_numscalar("r(erow)", Yn)
+st_numscalar("r(scol)", Xsp)
+st_numscalar("r(ecol)", Xn)
+
+st_global("r(scell)", numtobase26(Xsp))
+st_global("r(ecell)", numtobase26(Xn))
+
+
 `enda'
 di as txt _n `"Apri il file excel:  {ul:{bf:{browse `"`c(pwd)'/`xlsfile'"':`xlsfile'}}} "'
+
+
+return local srow = r(srow)
+return local erow = r(erow)
+return scalar scol = r(scol)
+return scalar ecol = r(ecol)
+
+return local scell = "`r(scell)'`r(srow)'"
+return local ecell = "`r(ecell)'`r(erow)'"
+
 
 end
 exit

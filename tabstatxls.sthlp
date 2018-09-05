@@ -3,7 +3,7 @@
 help for {hi:tabstatxls}
 {hline}
 
-{title:Esporta l'output di tabstat in Microsoft Excel}
+{title:Esportare l'output di tabstat in Microsoft Excel}
 
 {p 8 12 2}
 {cmd:tabstatxls} {it:varlist} {ifin} [{cmd:,} {help tabstatxls##tabstatopt:{it:tabstat_options}}]  {help tabstatxls##latexopt:{it:excel_options}}
@@ -12,12 +12,13 @@ help for {hi:tabstatxls}
 {title:Description}
 
 {p 4 4 2}{cmd:tabstatxls} permette di esportare in LaTex l'output del comando {cmd:tabstat}. {it:varlist} è la lista delle variabili di cui si vogliono esportare le statistiche.
-Il comado usa la classe mata {\tt xl()} per esportare in Excel 1997/2003 i files di estensione .xls e in Excel 2007/2013 i files di estensione .xlsx.
+Il comado usa la classe mata {cmd:xl()} per esportare in Excel 1997/2003 i files di estensione .xls e in Excel 2007/2013 i files di estensione .xlsx. Per funzionare
+è richiesta la presenza del comando {cmd:fre}.
 
 
 {marker tabstatopt}{title:tabstat options}
 
-{p 4 8 2}{cmd:by(varname)}: specifica che le statistiche di {it:varlist} devono essere visualizzate condizionando per la variabile specificata in {cmd:by(varname)}
+{p 4 8 2}{cmd:by(varname)}: specifica che le statistiche delle variabili specificate in {it:varlist} devono essere visualizzate condizionando per la variabile specificata in {cmd:by(varname)}
 
 {p 4 8 2}{cmdab:s:tatistics(}{it:statname}{cmd:)}: specifica quali statistiche devono essere visualizzate. Se non si specifica nulla viene calcolata la sola media. Ogni statistica deve essere separata da uno spazio. Le possibili statistiche sono:
 
@@ -102,20 +103,25 @@ a seconda di cosa è specificato in {cmd:columns()}. Di default il valore è par
 {p 4 8 2}{cmd:resc_size(number)}: specifica la larghezza delle colonne del corpo della tabella cioè delle colonne con i risultati delle statistiche specificate in
 {cmd:statistics(}{it:statname}{cmd:)}. Di default il valore è 16.
 
+{p 4 8 2}{cmd:nodispstat}: sopprime la dicitura della statistica nelle intestazioni di riga. Questa opzione è abilitata solo quando vengono specificate le opzioni
+{cmd:columns(variables)} e {cmd:by(varname)}
+
 {p 4 8 2}{cmd:rows_size(number)}: specifica l'altezza delle righe del corpo della tabella. Di default il valore è 15.
 
 {p 4 8 2}{cmd:fontname(string)}: specifica il font da usare nella tabella. Il default è {cmd:fontname(Calibri)}
 
 {p 4 8 2}{cmd:fontsize(number)}: specifica la dimensione del font usato nella tabella. Il default è 11.
 
-{p 4 8 2}{cmd:pattern_intc(string)}: specifica il colore di sfondo della prima riga della tabella. I colori possono essere indicati nel formato RGB
-all'interno di virgolette ({cmd:pattern_intc("255 255 255")} o usando uno dei colori predefiniti per l'esportazione in excel, vedi
+{p 4 8 2}{cmd:bcolor_intc(string)}: specifica il colore di sfondo della prima riga della tabella. I colori possono essere indicati nel formato RGB
+all'interno di virgolette ({cmd:pattern_intc("255 255 255")} o usando uno dei colori predefiniti da Stata per l'esportazione in Excel, vedi
  {cmd:{help [M-5] xl():[M-5] xl()}} alla sezione Format colors. Di default non è previsto nessun colore.
+
+{p 4 8 2}{cmd:pattern_intc(string)}: specifica il pattern di riempimento della prima riga della tabella. Vedi {cmd:{help [M-5] xl():[M-5] xl()}} alla sezione Codes for fill pattern styles. Di default non è solid.
 
 {p 4 8 2}{cmd:vardisp(varlabel|varname)}: specifica come visualizzare le variabili specificate in {it:varlist}. {cmd:vardisp(varlabel)} visualizza la descrizione associata a ciascuna variabile,
 {cmd:vardisp(varname)} visualizza solo il nome della variabile. {cmd:vardisp(varlabel)} è il default. DA VERIFICARE !!
 
-{p 4 8 2}{cmd:bold}: specifica di formattare in bold la prima riga della tabella.
+{p 4 8 2}{cmd:bold}: specifica di formattare in bold la prima riga della tabella (intestazioni delle colonne).
 
 {p 4 8 2}{cmd:s1(string)...s10(string)}: specifica la descrizione delle statistiche indicate nell'opzione {cmd:statistics({it:statname})}. L'ordine deve essere quello di {it:statname}, ovvero
 {cmd:s1()} indica la descrizione della prima statistica di {cmd:statistics({it:statname})}, {cmd:s2()} indica la descrizione della seconda statistica di {cmd:statistics({it:statname})} e così via.
@@ -153,7 +159,7 @@ Queste sono le descrizioni di default:
 
 {p 4 8 2}{cmd:dfs1(string)...dfs10(string)}: specifica il formato numerico delle statistiche indicate nell'opzione {cmd:statistics({it:statname})}. L'ordine deve essere quello di {it:statname}, ovvero
 {cmd:dfs1()} indica il formato della prima statistica di {cmd:statistics({it:statname})}, {cmd:dfs2()} indica il formato della seconda statistica di {cmd:statistics({it:statname})} e così via.
-La sintassi del formato è la medesima di Mata per i formati numerici nell'esportazione in excel (vedi {cmd:{help [M-5] xl():[M-5] xl()}}).
+La sintassi del formato è la medesima di Mata per i formati numerici nell'esportazione in Excel (vedi {cmd:{help [M-5] xl():[M-5] xl()}} alla sezione Codes for numeric formats).
 
 {synoptset 30}{...}
 {synopt:{space 4}Formato}Esempio{p_end}
@@ -195,7 +201,7 @@ La sintassi del formato è la medesima di Mata per i formati numerici nell'espor
 {space 4}{synoptline}
 {p2colreset}{...}
 
- {p 4 8 2}Dovrebbe essere possibile usare anche dei formati personalizzati, vedi {cmd:{help [M-5] xl():[M-5] xl()}} alla sezione Custom formatting.
+ {p 4 8 2}É possibile usare anche i formati numerici personalizzati, vedi {cmd:{help [M-5] xl():[M-5] xl()}} alla sezione Custom formatting.
 
 
 
