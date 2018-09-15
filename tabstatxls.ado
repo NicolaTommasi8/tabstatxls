@@ -49,6 +49,12 @@ else local default_stat = 0
 
 local n_catvar=0 /** serve per non avere problemi nell'if di mata if ("`columns'" == "..." & "`by'" != "") */
 if "`by'" != "" {
+  capture which fre
+  if _rc==111 {
+   di "fre not installed.... installing..."
+   ssc inst fre, replace
+   exit
+  }
   local byvar = "`by'"
   local by = "by(`by')"
   if "`missing'" == "" qui fre `byvar' `if' `in', nomissing
@@ -450,7 +456,7 @@ if ("`columns'" == "variables" & "`by'" != "") {
   je = js + `nstat' -1
   for (j=1; j<=rows(desc_catvar); j++) {
     b.put_string(rowi,Xsp,desc_catvar[j,.])
-    if ("`nstat'"=="") b.put_string(rowi,Xint,vec_rowsint);
+    if (`nstat'>1 & "`dispstat'" != "nodispstat") b.put_string(rowi,Xint,vec_rowsint);
     b.put_number(rowi,X1,STAT[js..je,.])
     rowi=rowi + `nstat'
     js = js + `nstat'
@@ -783,6 +789,8 @@ if ("`debug'" != "") {
 "desc_catvar"; desc_catvar
 "vec_rowsint"; vec_rowsint
 "vec_colsint"; vec_colsint'
+
+"nstat"; `nstat'
 
 };
 
