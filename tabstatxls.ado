@@ -66,7 +66,7 @@ if "`vardisp'" == "" local vardisp = "varlabel"
 qui tabstat `varlist' `if' `in', `by' save s(`statistics') c(`columns') `nototal' `missing'
 mata: StatTotal = st_matrix("r(StatTotal)")
 
-mata: desc_catvar = J(1,1,.) /** ser per non avere problemi nell'if di mata if ("`columns'" == "..." & "`by'" != "") */
+mata: desc_catvar = J(1,1,.) /** serve per non avere problemi nell'if di mata if ("`columns'" == "..." & "`by'" != "") */
 mata: STAT = J(1,1,.) /** serve per non avere problemi nell'if di mata if ("`columns'" == "..." & "`by'" != "") */
 if "`by'" != "" {
   mata: desc_catvar = J(0,1,"")
@@ -442,7 +442,7 @@ if ("`columns'" == "variables" & "`by'" != "") {
   Y1 = Y1T + 1
   //se c'è nototal -> rows(StatTotal)=0 ->
   if (rows(StatTotal) > 0) Yn = Y1T + rows(StatTotal)*`n_catvar'
-  else Yn = Y1T + `n_catvar'
+  else Yn = Y1T + `n_catvar'*`nstat'
 
   if ("`nototal'"=="") Yn = Yn + rows(StatTotal);
 
@@ -524,14 +524,10 @@ if ("`columns'" == "variables" & "`by'" != "") {
   };
 
 
-
-
-
-
   if ("`dfs1'"!="") {
     rowi = Y1
     rowi_sj = rowi //riga i-esima per la statistica j-esima
-    for (j=1; j<=`nstat'; j++) {
+    for (j=1; j<=`n_catvar'; j++) {
       b.set_number_format(rowi_sj,cols,"`dfs1'")
       rowi_sj = rowi_sj + `nstat'
     }
@@ -539,7 +535,7 @@ if ("`columns'" == "variables" & "`by'" != "") {
   if ("`dfs2'"!="") {
     rowi = rowi+1
     rowi_sj = rowi
-    for (j=1; j<=`nstat'; j++) {
+    for (j=1; j<=`n_catvar'; j++) {
       b.set_number_format(rowi_sj,cols,"`dfs2'")
       rowi_sj = rowi_sj + `nstat'
     }
@@ -547,7 +543,7 @@ if ("`columns'" == "variables" & "`by'" != "") {
   if ("`dfs3'"!="") {
     rowi = rowi+1
     rowi_sj = rowi
-    for (j=1; j<=`nstat'; j++) {
+    for (j=1; j<=`n_catvar'; j++) {
       b.set_number_format(rowi_sj,cols,"`dfs3'")
       rowi_sj = rowi_sj + `nstat'
     }
@@ -555,7 +551,7 @@ if ("`columns'" == "variables" & "`by'" != "") {
   if ("`dfs4'"!="") {
     rowi = rowi+1
     rowi_sj = rowi
-    for (j=1; j<=`nstat'; j++) {
+    for (j=1; j<=`n_catvar'; j++) {
       b.set_number_format(rowi_sj,cols,"`dfs4'")
       rowi_sj = rowi_sj + `nstat'
     }
@@ -563,7 +559,7 @@ if ("`columns'" == "variables" & "`by'" != "") {
   if ("`dfs5'"!="") {
     rowi = rowi+1
     rowi_sj = rowi
-    for (j=1; j<=`nstat'; j++) {
+    for (j=1; j<=`n_catvar'; j++) {
       b.set_number_format(rowi_sj,cols,"`dfs5'")
       rowi_sj = rowi_sj + `nstat'
     }
@@ -571,7 +567,7 @@ if ("`columns'" == "variables" & "`by'" != "") {
   if ("`dfs6'"!="") {
     rowi = rowi+1
     rowi_sj = rowi
-    for (j=1; j<=`nstat'; j++) {
+    for (j=1; j<=`n_catvar'; j++) {
       b.set_number_format(rowi_sj,cols,"`dfs6'")
       rowi_sj = rowi_sj + `nstat'
     }
@@ -579,7 +575,7 @@ if ("`columns'" == "variables" & "`by'" != "") {
   if ("`dfs7'"!="") {
     rowi = rowi+1
     rowi_sj = rowi
-    for (j=1; j<=`nstat'; j++) {
+    for (j=1; j<=`n_catvar'; j++) {
       b.set_number_format(rowi_sj,cols,"`dfs7'")
       rowi_sj = rowi_sj + `nstat'
     }
@@ -587,7 +583,7 @@ if ("`columns'" == "variables" & "`by'" != "") {
   if ("`dfs8'"!="") {
     rowi = rowi+1
     rowi_sj = rowi
-    for (j=1; j<=`nstat'; j++) {
+    for (j=1; j<=`n_catvar'; j++) {
       b.set_number_format(rowi_sj,cols,"`dfs8'")
       rowi_sj = rowi_sj + `nstat'
     }
@@ -595,7 +591,7 @@ if ("`columns'" == "variables" & "`by'" != "") {
   if ("`dfs9'"!="") {
     rowi = rowi+1
     rowi_sj = rowi
-    for (j=1; j<=`nstat'; j++) {
+    for (j=1; j<=`n_catvar'; j++) {
       b.set_number_format(rowi_sj,cols,"`dfs9'")
       rowi_sj = rowi_sj + `nstat'
     }
@@ -603,7 +599,7 @@ if ("`columns'" == "variables" & "`by'" != "") {
   if ("`dfs10'"!="") {
     rowi = rowi+1
     rowi_sj = rowi
-    for (j=1; j<=`nstat'; j++) {
+    for (j=1; j<=`n_catvar'; j++) {
       b.set_number_format(rowi_sj,cols,"`dfs10'")
       rowi_sj = rowi_sj + `nstat'
     }
